@@ -33,9 +33,36 @@ def find_empty_locations(board):
 
     return empty_locations
 
-def solve_sudoku(board):
+def find_empty_location(board):
+    # Find an empty position (cell with 0)
+    for i in range(9):
+        for j in range(9):
+            if board[i][j] == 0:
+                return i, j
+    return None, None  # If the board is filled
 
-    prev_len = 0
+def solve_sudoku_fallback(board):
+    row, col = find_empty_location(board)
+
+    if row is None and col is None:
+        return True  # Puzzle is solved
+
+    for num in range(1, 10):
+        if is_valid(board, row, col, num):
+            # Try placing the number
+            board[row][col] = num
+
+            # Recursively try to solve the rest of the puzzle
+            if solve_sudoku_fallback(board):
+                return True
+
+            # If placing the current number doesn't lead to a solution, backtrack
+            board[row][col] = 0
+
+    return False  # No solution found
+
+
+def solve_sudoku(board):
 
     while True:
 
@@ -44,9 +71,9 @@ def solve_sudoku(board):
         if len(empty_locations) == 0:
             break   # it's solved
 
-        if len(empty_locations) == prev_len:
-            return None     # stuck
+        found = False
 
+        # Solve simple cases
         for i, j in empty_locations:
             count = 0
             value = 0
@@ -57,23 +84,30 @@ def solve_sudoku(board):
                     if count > 1: break
             if count == 1:
                 board[i][j] = value
+                found = True
 
-        prev_len = len(empty_locations)
+            if found: continue
+
+            # TODO: check for more complex cases here...
+
+            # Give up try brute-force
+            solve_sudoku_fallback(board)
+            return board
 
     return board
 
 # Example usage:
 # Define the Sudoku puzzle as a 9x9 list with 0 representing empty cells
 sudoku_board = [
-    [5, 3, 0, 0, 7, 0, 0, 0, 0],
-    [6, 0, 0, 1, 9, 5, 0, 0, 0],
-    [0, 9, 8, 0, 0, 0, 0, 6, 0],
-    [8, 0, 0, 0, 6, 0, 0, 0, 3],
-    [4, 0, 0, 8, 0, 3, 0, 0, 1],
-    [7, 0, 0, 0, 2, 0, 0, 0, 6],
-    [0, 6, 0, 0, 0, 0, 2, 8, 0],
-    [0, 0, 0, 4, 1, 9, 0, 0, 5],
-    [0, 0, 0, 0, 8, 0, 0, 7, 9]
+        [2, 0, 0, 0, 7, 0, 0, 0, 3],
+        [1, 0, 0, 0, 0, 0, 0, 8, 0],
+        [0, 0, 4, 2, 0, 9, 0, 0, 5],
+        [9, 4, 0, 0, 0, 0, 6, 0, 8],
+        [0, 0, 0, 8, 0, 0, 0, 9, 0],
+        [0, 0, 0, 0, 0, 0, 0, 7, 0],
+        [7, 2, 1, 9, 0, 8, 0, 6, 0],
+        [0, 3, 0, 0, 2, 7, 1, 0, 0],
+        [4, 0, 0, 0, 0, 3, 0, 0, 0]
 ]
 
 solution = solve_sudoku(sudoku_board)
