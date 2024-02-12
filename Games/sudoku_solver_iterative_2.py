@@ -6,31 +6,12 @@
 
 # Solve Sudoku puzzle (iterative solution), if it has a unique solution.
 
-def is_valid(board, row, col, num):
-    # Check if the number is not present in the current row and column
-    for i in range(9):
-        if board[row][i] == num or board[i][col] == num:
-            return False
-
-    # Check if the number is not present in the current 3x3 subgrid
-    start_row, start_col = 3 * (row // 3), 3 * (col // 3)
-    for i in range(3):
-        for j in range(3):
-            if board[start_row + i][start_col + j] == num:
-                return False
-
-    return True
-
 def find_empty_locations(board):
-
     empty_locations = []
-
-    # Find all empty positions (cells with 0)
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
                 empty_locations.append((i, j))
-
     return empty_locations
 
 def solve_sudoku(board):
@@ -48,23 +29,35 @@ def solve_sudoku(board):
             return None     # stuck
 
         for i, j in empty_locations:
-            count = 0
-            value = 0
-            for n in range(1,10):
-                if is_valid(board, i, j, n):
-                    count += 1
-                    value = n
-                    if count > 1: break
-            if count == 1:
-                board[i][j] = value
+
+            possible_values = set(range(1, 10))
+            for x in range(9):
+                possible_values.discard(board[i][x])  # check row
+                possible_values.discard(board[x][j])  # check column
+                if len(possible_values) == 1: break
+
+            if len(possible_values) == 1:
+                board[i][j] = possible_values.pop()
+                continue
+
+            # Check 3x3 box
+            box_row = (i // 3) * 3
+            box_col = (j // 3) * 3
+            for x in range(3):
+                for y in range(3):
+                    possible_values.discard(board[box_row + x][box_col + y])
+                    if len(possible_values) == 1: break
+                if len(possible_values) == 1: break
+
+            if len(possible_values) == 1:
+                board[i][j] = possible_values.pop()
 
         prev_len = len(empty_locations)
 
     return board
 
 # Example usage:
-# Define the Sudoku puzzle as a 9x9 list with 0 representing empty cells
-sudoku_board = [
+board = [
     [5, 3, 0, 0, 7, 0, 0, 0, 0],
     [6, 0, 0, 1, 9, 5, 0, 0, 0],
     [0, 9, 8, 0, 0, 0, 0, 6, 0],
@@ -76,10 +69,9 @@ sudoku_board = [
     [0, 0, 0, 0, 8, 0, 0, 7, 9]
 ]
 
-solution = solve_sudoku(sudoku_board)
-
-if solution:
-    for row in solution:
+solved_board = solve_sudoku(board)
+if solved_board:
+    for row in solved_board:
         print(row)
 else:
     print("No unique solution exists.")
