@@ -1,10 +1,6 @@
 #!/usr/bin/python
 
-# Author: Trizen
-# Date: 12 February 2024
-# https://github.com/trizen
-
-# Solve Sudoku puzzle (iterative solution), if it has a unique solution.
+# Solve Sudoku puzzle (iterative solution // stack-based).
 
 def is_valid(board, row, col, num):
     # Check if the number is not present in the current row and column
@@ -21,46 +17,32 @@ def is_valid(board, row, col, num):
 
     return True
 
-def find_empty_locations(board):
-
-    positions = []
-
-    # Find all empty positions (cells with 0)
+def find_empty_location(board):
+    # Find an empty position (cell with 0)
     for i in range(9):
         for j in range(9):
             if board[i][j] == 0:
-                positions.append([i, j])
-
-    return positions
+                return i, j
+    return None, None  # If the board is filled
 
 def solve_sudoku(board):
+    stack = []
+    stack.append(board)
 
-    prev_len = 0
+    while stack:
+        current_board = stack.pop()
+        row, col = find_empty_location(current_board)
 
-    while True:
+        if row is None and col is None:
+            return current_board
 
-        empty_locations = find_empty_locations(board)
+        for num in range(1, 10):
+            if is_valid(current_board, row, col, num):
+                new_board = [row[:] for row in current_board]
+                new_board[row][col] = num
+                stack.append(new_board)
 
-        if len(empty_locations) == 0:
-            break   # it's solved
-
-        if len(empty_locations) == prev_len:
-            return None     # stuck
-
-        for i,j in empty_locations:
-            count = 0
-            value = 0
-            for n in range(1,10):
-                if is_valid(board, i, j, n):
-                    count += 1
-                    value = n
-                    if count > 1: break
-            if count == 1:
-                board[i][j] = value
-
-        prev_len = len(empty_locations)
-
-    return board
+    return None
 
 # Example usage:
 # Define the Sudoku puzzle as a 9x9 list with 0 representing empty cells
@@ -82,4 +64,4 @@ if solution:
     for row in solution:
         print(row)
 else:
-    print("No unique solution exists.")
+    print("No solution exists.")
