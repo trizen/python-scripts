@@ -3,10 +3,9 @@
 # Benchmark several algorithms for solving Sudoku.
 
 # Results:
-#   Iterative algorithm execution time: 0.043829917907714844
-#   Iterative #2 algorithm execution time: 0.040073394775390625
-#   Stack-based algorithm execution time: 0.15182018280029297
-#   Backtracking algorithm execution time: 0.30015063285827637
+#   Iterative algorithm execution time: 0.09263157844543457
+#   Stack-based algorithm execution time: 1.5977880954742432
+#   Backtracking algorithm execution time: 2.262951374053955
 
 import time
 import copy
@@ -57,6 +56,7 @@ def solve_sudoku_iterative(board):
 
         found = False
 
+        # Solve simple cases
         for i, j in empty_locations:
             count = 0
             value = 0
@@ -71,52 +71,34 @@ def solve_sudoku_iterative(board):
 
         if found: continue
 
+        # Solve more complex cases
+        stats = [[0]*9 for x in [0]*9]
+        for i,j in empty_locations:
+            arr = []
+            for n in range(1, 10):
+                if is_valid(board, i, j, n):
+                    arr.append(n)
+            stats[i][j] = arr
+
+        cols = [[0]*10 for x in [0]*9]
+        rows = [[0]*10 for x in [0]*9]
+
+        for i,j in empty_locations:
+            for v in stats[i][j]:
+                rows[i][v] += 1
+                cols[j][v] += 1
+
+        for i,j in empty_locations:
+            for v in stats[i][j]:
+                if (cols[j][v] == 1 or rows[i][v] == 1):
+                    board[i][j] = v
+                    found = True
+
+        if found: continue
+
         # Give up
         solve_sudoku_backtracking(board)
         return board
-
-    return board
-
-def solve_sudoku_iterative_2(board):
-
-    prev_len = 0
-
-    while True:
-
-        empty_locations = find_empty_locations(board)
-
-        if len(empty_locations) == 0:
-            break   # it's solved
-
-        if len(empty_locations) == prev_len:
-            solve_sudoku_backtracking(board)
-            return board
-
-        for i, j in empty_locations:
-
-            possible_values = set(range(1, 10))
-            for x in range(9):
-                possible_values.discard(board[i][x])  # check row
-                possible_values.discard(board[x][j])  # check column
-                if len(possible_values) == 1: break
-
-            if len(possible_values) == 1:
-                board[i][j] = possible_values.pop()
-                continue
-
-            # Check 3x3 box
-            box_row = (i // 3) * 3
-            box_col = (j // 3) * 3
-            for x in range(3):
-                for y in range(3):
-                    possible_values.discard(board[box_row + x][box_col + y])
-                    if len(possible_values) == 1: break
-                if len(possible_values) == 1: break
-
-            if len(possible_values) == 1:
-                board[i][j] = possible_values.pop()
-
-        prev_len = len(empty_locations)
 
     return board
 
@@ -184,59 +166,103 @@ puzzles = [
         [0, 0, 0, 0, 8, 0, 0, 7, 0]
     ],
     [
-        [0, 0, 0, 0, 6, 2, 8, 0, 0],
-        [0, 0, 0, 0, 1, 0, 0, 0, 4],
-        [2, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 1, 7, 5, 0, 0, 3, 0, 0],
-        [0, 0, 9, 0, 0, 0, 2, 0, 0],
-        [0, 0, 5, 0, 0, 4, 7, 6, 0],
-        [0, 0, 0, 0, 0, 0, 0, 0, 1],
-        [9, 0, 0, 0, 7, 0, 0, 0, 0],
-        [0, 0, 2, 3, 8, 0, 0, 0, 0]
+        [0, 0, 3, 0, 2, 0, 6, 0, 0],
+        [9, 0, 0, 3, 0, 5, 0, 0, 1],
+        [0, 0, 1, 8, 0, 6, 4, 0, 0],
+        [0, 0, 8, 1, 0, 2, 9, 0, 0],
+        [7, 0, 0, 0, 0, 0, 0, 0, 8],
+        [0, 0, 6, 7, 0, 8, 2, 0, 0],
+        [0, 0, 2, 6, 0, 9, 5, 0, 0],
+        [8, 0, 0, 2, 0, 3, 0, 0, 9],
+        [0, 0, 5, 0, 1, 0, 3, 0, 0]
     ],
     [
-        [0, 0, 0, 0, 0, 3, 0, 0, 0],
-        [0, 5, 9, 0, 0, 7, 0, 0, 8],
-        [2, 0, 0, 4, 8, 0, 0, 0, 0],
-        [0, 0, 0, 0, 0, 5, 0, 8, 0],
-        [0, 0, 7, 2, 0, 0, 3, 0, 0],
-        [0, 8, 0, 0, 0, 0, 0, 4, 0],
-        [3, 0, 0, 0, 0, 0, 1, 0, 5],
+        [2, 0, 0, 0, 8, 0, 3, 0, 0],
+        [0, 6, 0, 0, 7, 0, 0, 8, 4],
+        [0, 3, 0, 5, 0, 0, 2, 0, 9],
+        [0, 0, 0, 1, 0, 5, 4, 0, 8],
         [0, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 0, 0, 0, 5, 0, 0, 0, 0]
+        [4, 0, 2, 7, 0, 6, 0, 0, 0],
+        [3, 0, 1, 0, 0, 7, 0, 4, 0],
+        [7, 2, 0, 0, 4, 0, 0, 6, 0],
+        [0, 0, 4, 0, 1, 0, 0, 0, 3]
     ],
     [
-        [5, 3, 0, 0, 2, 4, 7, 0, 0],
-        [0, 0, 2, 0, 0, 0, 8, 0, 0],
-        [1, 0, 0, 7, 0, 3, 9, 0, 2],
-        [0, 0, 8, 0, 7, 2, 0, 4, 9],
-        [0, 2, 0, 9, 8, 0, 0, 7, 0],
-        [7, 9, 0, 0, 0, 0, 0, 8, 0],
-        [0, 0, 0, 0, 3, 0, 5, 0, 6],
-        [9, 6, 0, 0, 1, 0, 3, 0, 0],
-        [0, 5, 0, 6, 9, 0, 0, 1, 0]
+        [0, 0, 0, 0, 0, 0, 9, 0, 7],
+        [0, 0, 0, 4, 2, 0, 1, 8, 0],
+        [0, 0, 0, 7, 0, 5, 0, 2, 6],
+        [1, 0, 0, 9, 0, 4, 0, 0, 0],
+        [0, 5, 0, 0, 0, 0, 0, 4, 0],
+        [0, 0, 0, 5, 0, 7, 0, 0, 9],
+        [9, 2, 0, 1, 0, 8, 0, 0, 0],
+        [0, 3, 4, 0, 5, 9, 0, 0, 0],
+        [5, 0, 7, 0, 0, 0, 0, 0, 0]
     ],
     [
-        [0, 0, 9, 0, 0, 0, 0, 0, 0],
-        [4, 0, 7, 0, 0, 0, 2, 0, 0],
-        [3, 0, 0, 1, 8, 0, 6, 9, 0],
-        [0, 5, 3, 0, 9, 0, 1, 0, 2],
-        [2, 0, 4, 6, 0, 3, 0, 0, 9],
-        [0, 0, 0, 5, 0, 7, 0, 0, 0],
-        [0, 3, 6, 7, 0, 5, 8, 2, 0],
-        [5, 0, 0, 0, 3, 0, 9, 0, 0],
-        [0, 0, 8, 2, 6, 0, 5, 7, 0]
+        [0, 3, 0, 0, 5, 0, 0, 4, 0],
+        [0, 0, 8, 0, 1, 0, 5, 0, 0],
+        [4, 6, 0, 0, 0, 0, 0, 1, 2],
+        [0, 7, 0, 5, 0, 2, 0, 8, 0],
+        [0, 0, 0, 6, 0, 3, 0, 0, 0],
+        [0, 4, 0, 1, 0, 9, 0, 3, 0],
+        [2, 5, 0, 0, 0, 0, 0, 9, 8],
+        [0, 0, 1, 0, 2, 0, 6, 0, 0],
+        [0, 8, 0, 0, 6, 0, 0, 2, 0]
     ],
     [
-        [0, 0, 3, 5, 0, 7, 9, 0, 0],
-        [0, 2, 1, 0, 0, 0, 0, 0, 7],
-        [9, 0, 0, 0, 0, 0, 0, 0, 0],
-        [0, 8, 0, 0, 0, 2, 6, 0, 0],
-        [0, 9, 0, 0, 3, 4, 0, 0, 0],
-        [3, 7, 2, 9, 6, 8, 0, 0, 0],
-        [0, 0, 0, 2, 0, 0, 1, 0, 4],
-        [0, 0, 9, 3, 0, 0, 5, 2, 0],
-        [0, 6, 0, 0, 0, 1, 0, 0, 3]
+        [0, 2, 0, 8, 1, 0, 7, 4, 0],
+        [7, 0, 0, 0, 0, 3, 1, 0, 0],
+        [0, 9, 0, 0, 0, 2, 8, 0, 5],
+        [0, 0, 9, 0, 4, 0, 0, 8, 7],
+        [4, 0, 0, 2, 0, 8, 0, 0, 3],
+        [1, 6, 0, 0, 3, 0, 2, 0, 0],
+        [3, 0, 2, 7, 0, 0, 0, 6, 0],
+        [0, 0, 5, 6, 0, 0, 0, 0, 8],
+        [0, 7, 6, 0, 5, 1, 0, 9, 0]
+    ],
+    [
+        [1, 0, 0, 9, 2, 0, 0, 0, 0],
+        [5, 2, 4, 0, 1, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 7, 0],
+        [0, 5, 0, 0, 0, 8, 1, 0, 2],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0],
+        [4, 0, 2, 7, 0, 0, 0, 9, 0],
+        [0, 6, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 3, 0, 9, 4, 5],
+        [0, 0, 0, 0, 7, 1, 0, 0, 6]
+    ],
+    [
+        [0, 4, 3, 0, 8, 0, 2, 5, 0],
+        [6, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 1, 0, 9, 4],
+        [9, 0, 0, 0, 0, 4, 0, 7, 0],
+        [0, 0, 0, 6, 0, 8, 0, 0, 0],
+        [0, 1, 0, 2, 0, 0, 0, 0, 3],
+        [8, 2, 0, 5, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 0, 5],
+        [0, 3, 4, 0, 9, 0, 7, 1, 0]
+    ],
+    [
+        [4, 8, 0, 0, 0, 6, 9, 0, 2],
+        [0, 0, 2, 0, 0, 8, 0, 0, 1],
+        [9, 0, 0, 3, 7, 0, 0, 6, 0],
+        [8, 4, 0, 0, 1, 0, 2, 0, 0],
+        [0, 0, 3, 7, 0, 4, 1, 0, 0],
+        [0, 0, 1, 0, 6, 0, 0, 4, 9],
+        [0, 2, 0, 0, 8, 5, 0, 0, 7],
+        [7, 0, 0, 9, 0, 0, 6, 0, 0],
+        [6, 0, 9, 2, 0, 0, 0, 1, 8]
+    ],
+    [
+        [0, 0, 0, 9, 0, 0, 0, 0, 2],
+        [0, 5, 0, 1, 2, 3, 4, 0, 0],
+        [0, 3, 0, 0, 0, 0, 1, 6, 0],
+        [9, 0, 8, 0, 0, 0, 0, 0, 0],
+        [0, 7, 0, 0, 0, 0, 0, 9, 0],
+        [0, 0, 0, 0, 0, 0, 2, 0, 5],
+        [0, 9, 1, 0, 0, 0, 0, 5, 0],
+        [0, 0, 7, 4, 3, 9, 0, 2, 0],
+        [4, 0, 0, 0, 0, 7, 0, 0, 0]
     ],
     [
         [2, 0, 0, 0, 7, 0, 0, 0, 3],
@@ -248,8 +274,7 @@ puzzles = [
         [7, 2, 1, 9, 0, 8, 0, 6, 0],
         [0, 3, 0, 0, 2, 7, 1, 0, 0],
         [4, 0, 0, 0, 0, 3, 0, 0, 0]
-    ]
-    # Add more Sudoku puzzles here
+    ],
 ]
 
 start_time = time.time()
@@ -257,12 +282,6 @@ for puzzle in puzzles:
     solve_sudoku_iterative(copy.deepcopy(puzzle))
 end_time = time.time()
 print("Iterative algorithm execution time:", end_time - start_time)
-
-start_time = time.time()
-for puzzle in puzzles:
-    solve_sudoku_iterative_2(copy.deepcopy(puzzle))
-end_time = time.time()
-print("Iterative #2 algorithm execution time:", end_time - start_time)
 
 start_time = time.time()
 for puzzle in puzzles:

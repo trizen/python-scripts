@@ -73,7 +73,7 @@ def solve_sudoku(board):
 
         found = False
 
-        # Solve simple cases
+        # Solve easy cases
         for i, j in empty_locations:
             count = 0
             value = 0
@@ -86,13 +86,36 @@ def solve_sudoku(board):
                 board[i][j] = value
                 found = True
 
-            if found: continue
+        if found: continue
 
-            # TODO: check for more complex cases here...
+        # Solve more complex cases
+        stats = [[0]*9 for x in [0]*9]
+        for i,j in empty_locations:
+            arr = []
+            for n in range(1, 10):
+                if is_valid(board, i, j, n):
+                    arr.append(n)
+            stats[i][j] = arr
 
-            # Give up try brute-force
-            solve_sudoku_fallback(board)
-            return board
+        cols = [[0]*10 for x in [0]*9]
+        rows = [[0]*10 for x in [0]*9]
+
+        for i,j in empty_locations:
+            for v in stats[i][j]:
+                rows[i][v] += 1
+                cols[j][v] += 1
+
+        for i,j in empty_locations:
+            for v in stats[i][j]:
+                if (cols[j][v] == 1 or rows[i][v] == 1):
+                    board[i][j] = v
+                    found = True
+
+        if found: continue
+
+        # Give up try brute-force
+        solve_sudoku_fallback(board)
+        return board
 
     return board
 
