@@ -4,7 +4,7 @@
 # Date: 12 February 2024
 # https://github.com/trizen
 
-# Solve Sudoku puzzle (iterative solution), if it has a unique solution.
+# Fast iterative algorithm to solve the Sudoku puzzle.
 
 def is_valid(board, row, col, num):
     # Check if the number is not present in the current row and column
@@ -61,7 +61,6 @@ def solve_sudoku_fallback(board):
 
     return False  # No solution found
 
-
 def solve_sudoku(board):
 
     while True:
@@ -89,7 +88,7 @@ def solve_sudoku(board):
         if found: continue
 
         # Solve more complex cases
-        stats = [[0]*9 for x in [0]*9]
+        stats = [[0]*9 for x in range(10)]
         for i,j in empty_locations:
             arr = []
             for n in range(1, 10):
@@ -97,17 +96,21 @@ def solve_sudoku(board):
                     arr.append(n)
             stats[i][j] = arr
 
-        cols = [[0]*10 for x in [0]*9]
-        rows = [[0]*10 for x in [0]*9]
+        cols    = [ [0]*10 for x in range(10)]
+        rows    = [ [0]*10 for x in range(10)]
+        subgrid = [[[0]*10 for x in range(10)] for y in range(10)]
 
         for i,j in empty_locations:
             for v in stats[i][j]:
                 rows[i][v] += 1
                 cols[j][v] += 1
+                subgrid[3*(i//3)][3*(j//3)][v] += 1
 
         for i,j in empty_locations:
             for v in stats[i][j]:
-                if (cols[j][v] == 1 or rows[i][v] == 1):
+                if (cols[j][v] == 1 or
+                    rows[i][v] == 1 or
+                    subgrid[3*(i//3)][3*(j//3)][v] == 1):
                     board[i][j] = v
                     found = True
 
@@ -132,6 +135,32 @@ sudoku_board = [
         [0, 3, 0, 0, 2, 7, 1, 0, 0],
         [4, 0, 0, 0, 0, 3, 0, 0, 0]
 ]
+
+if True:
+    sudoku_board = [
+        [0, 0, 0, 8, 0, 1, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 4, 3],
+        [5, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 7, 0, 8, 0, 0],
+        [0, 0, 0, 0, 0, 0, 1, 0, 0],
+        [0, 2, 0, 0, 3, 0, 0, 0, 0],
+        [6, 0, 0, 0, 0, 0, 0, 7, 5],
+        [0, 0, 3, 4, 0, 0, 0, 0, 0],
+        [0, 0, 0, 2, 0, 0, 6, 0, 0]
+    ]
+
+if False:
+    sudoku_board = [
+        [8, 0, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 3, 6, 0, 0, 0, 0, 0],
+        [0, 7, 0, 0, 9, 0, 2, 0, 0],
+        [0, 5, 0, 0, 0, 7, 0, 0, 0],
+        [0, 0, 0, 0, 4, 5, 7, 0, 0],
+        [0, 0, 0, 1, 0, 0, 0, 3, 0],
+        [0, 0, 1, 0, 0, 0, 0, 6, 8],
+        [0, 0, 8, 5, 0, 0, 0, 1, 0],
+        [0, 9, 0, 0, 0, 0, 4, 0, 0]
+    ]
 
 solution = solve_sudoku(sudoku_board)
 

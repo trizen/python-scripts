@@ -3,9 +3,9 @@
 # Benchmark several algorithms for solving Sudoku.
 
 # Results:
-#   Iterative algorithm execution time: 0.09263157844543457
-#   Stack-based algorithm execution time: 1.5977880954742432
-#   Backtracking algorithm execution time: 2.262951374053955
+#   Iterative algorithm execution time: 0.07956981658935547
+#   Stack-based algorithm execution time: 1.5783979892730713
+#   Backtracking algorithm execution time: 2.2110557556152344
 
 import time
 import copy
@@ -72,7 +72,7 @@ def solve_sudoku_iterative(board):
         if found: continue
 
         # Solve more complex cases
-        stats = [[0]*9 for x in [0]*9]
+        stats = [[0]*9 for x in range(10)]
         for i,j in empty_locations:
             arr = []
             for n in range(1, 10):
@@ -80,17 +80,21 @@ def solve_sudoku_iterative(board):
                     arr.append(n)
             stats[i][j] = arr
 
-        cols = [[0]*10 for x in [0]*9]
-        rows = [[0]*10 for x in [0]*9]
+        cols    = [ [0]*10 for x in range(10)]
+        rows    = [ [0]*10 for x in range(10)]
+        subgrid = [[[0]*10 for x in range(10)] for y in range(10)]
 
         for i,j in empty_locations:
             for v in stats[i][j]:
                 rows[i][v] += 1
                 cols[j][v] += 1
+                subgrid[3*(i//3)][3*(j//3)][v] += 1
 
         for i,j in empty_locations:
             for v in stats[i][j]:
-                if (cols[j][v] == 1 or rows[i][v] == 1):
+                if (cols[j][v] == 1 or
+                    rows[i][v] == 1 or
+                    subgrid[3*(i//3)][3*(j//3)][v] == 1):
                     board[i][j] = v
                     found = True
 
